@@ -56,6 +56,7 @@ export default function Home() {
   };
 
   const realizarSorteo = () => {
+    console.log("entro")
     const participantsAvailable = participants
       .filter((obj) => {
         if (selectedPerson === "jose") {
@@ -112,7 +113,6 @@ export default function Home() {
   // };
 
   // everTrue();
-
   return (
     <div className={styles.container}>
       <Head>
@@ -142,7 +142,7 @@ export default function Home() {
           <button
             onClick={realizarSorteo}
             style={styles.button}
-            disabled={!!userInfo?.secretFriend}
+            disabled={userInfo?.name ? !!userInfo?.secretFriend : true}
           >
             Realizar Sorteo
           </button>
