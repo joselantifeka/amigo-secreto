@@ -10,14 +10,14 @@ export default function Home() {
     "genesis",
     "jose angel",
   ];
-  const [selectedPerson, setSelectedPerson] = useState(personas[0]);
-  const [showResult, setShowResult] = useState(false);
+  const [selectedPerson, setSelectedPerson] = useState("");
   const [secretFriend, setSecretFriend] = useState();
   const [participants, setParticipants] = useState([]);
+  const [userInfo, setUserInfo] = useState({})
+  console.log(secretFriend);
 
   useEffect(() => {
     setSecretFriend();
-    setShowResult(false);
 
     getFirebase()
       .firestore()
@@ -42,6 +42,7 @@ export default function Home() {
             return data;
           });
           const userInfo = resp[0];
+          setUserInfo(userInfo);
           if (userInfo?.secretFriend) {
             setSecretFriend(userInfo.secretFriend);
           }
@@ -55,48 +56,43 @@ export default function Home() {
   };
 
   const realizarSorteo = () => {
-    setShowResult(true);
-    if (!!secretFriend) {
-      const participantsAvailable = participants
-        .filter((obj) => {
-          if (selectedPerson === "jose") {
-            return obj.name !== "koraima" && obj.name !== "kelly";
-          }
-          if (selectedPerson === "angel") {
-            return obj.name !== "koraima";
-          }
-          if (selectedPerson === "koraima") {
-            return obj.name !== "angel" && obj.name !== "jose";
-          }
-          if (selectedPerson === "kelly") {
-            return obj.name !== "genesis";
-          }
-          if (selectedPerson === "genesis") {
-            return obj.name !== "kelly";
-          }
-          return obj;
-        })
-        .filter((obj) => obj.name !== selectedPerson);
-      const getRandomParticipant = getRandomElement(participantsAvailable);
-
-      try {
-        if (getRandomParticipant) {
-          getFirebase()
-            .firestore()
-            .collection("people")
-            .doc(`${getRandomParticipant.name}`)
-            .update({ available: false });
-          getFirebase()
-            .firestore()
-            .collection("people")
-            .doc(`${selectedPerson}`)
-            .update({ secretFriend: `${getRandomParticipant.name}` });
-          setSecretFriend(getRandomParticipant);
+    const participantsAvailable = participants
+      .filter((obj) => {
+        if (selectedPerson === "jose") {
+          return obj.name !== "koraima" && obj.name !== "kelly";
         }
-      } catch (error) {
-        console.log(error);
+        if (selectedPerson === "angel") {
+          return obj.name !== "koraima";
+        }
+        if (selectedPerson === "koraima") {
+          return obj.name !== "angel" && obj.name !== "jose";
+        }
+        if (selectedPerson === "kelly") {
+          return obj.name !== "genesis";
+        }
+        if (selectedPerson === "genesis") {
+          return obj.name !== "kelly";
+        }
+        return obj;
+      })
+      .filter((obj) => obj.name !== selectedPerson);
+    const getRandomParticipant = getRandomElement(participantsAvailable);
+
+    try {
+      if (getRandomParticipant) {
+        getFirebase()
+          .firestore()
+          .collection("people")
+          .doc(`${getRandomParticipant.name}`)
+          .update({ available: false });
+        getFirebase()
+          .firestore()
+          .collection("people")
+          .doc(`${selectedPerson}`)
+          .update({ secretFriend: `${getRandomParticipant.name}` });
+        setSecretFriend(getRandomParticipant);
       }
-    }
+    } catch (error) {}
   };
 
   // const everTrue = () => {
@@ -136,17 +132,22 @@ export default function Home() {
             onChange={(e) => setSelectedPerson(e.target.value)}
             style={styles.select}
           >
+            <option value=""></option>
             {personas.map((person) => (
               <option key={person} value={person}>
                 {person}
               </option>
             ))}
           </select>
-          <button onClick={realizarSorteo} style={styles.button}>
+          <button
+            onClick={realizarSorteo}
+            style={styles.button}
+            disabled={!!userInfo?.secretFriend}
+          >
             Realizar Sorteo
           </button>
           <p id="resultado" style={styles.resultado}>
-            {(secretFriend && showResult) && "Tu amigo secreto es: " + secretFriend}
+            {secretFriend && "Tu amigo secreto es: " + secretFriend}
           </p>
         </div>
       </main>
